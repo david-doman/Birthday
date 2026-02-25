@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const unlockTimeUTC = Date.UTC(2026, 1, 26, 6, 0, 0);
+  // ✅ Feb 26, 2026 12:00 AM Milwaukee (CST=UTC-6) => 06:00 UTC
+  const unlockTimeUTC = Date.UTC(2026, 1, 25, 6, 0, 0);
   let hasBurst = false;
 
   const lockScreen = document.getElementById("lockScreen");
@@ -7,45 +8,40 @@ document.addEventListener("DOMContentLoaded", () => {
   const countdownEl = document.getElementById("countdown");
   const unlockDateText = document.getElementById("unlockDateText");
   const tickAudio = document.getElementById("tickAudio");
-  const soundBtn = document.getElementById("soundBtn");
-
-
-  if (soundBtn && tickAudio) {
-    soundBtn.addEventListener("click", async () => {
-      try {
-        await tickAudio.play();   // start playing
-        tickAudio.pause();        // pause immediately (unlocks autoplay)
-        tickAudio.currentTime = 0;
-        soundEnabled = true;
-        soundBtn.textContent = "🔇";
-      } catch (e) {
-        // If it fails, user can click again
-      }
-    });
-  }
+  const bgVideoWrap = document.getElementById("bgVideoWrap");
+  const bgVideo = document.getElementById("bgVideo");
 
   if (!lockScreen || !birthdayScreen || !countdownEl || !unlockDateText) return;
 
   const pad = (n) => String(n).padStart(2, "0");
 
-  
   function updateCountdown() {
     const diff = unlockTimeUTC - Date.now();
 
     unlockDateText.textContent =
       "Unlocks at: " + new Date(unlockTimeUTC).toLocaleString();
 
-    // ✅ When unlocked → STOP ticking
+    // ✅ UNLOCKED
     if (diff <= 0) {
       lockScreen.hidden = true;
       birthdayScreen.hidden = false;
       countdownEl.textContent = "00d : 00h : 00m : 00s";
 
+      // Stop ticking
       if (tickAudio) {
         tickAudio.pause();
         tickAudio.currentTime = 0;
       }
 
+      // Show + fade in background video
+      if (bgVideoWrap && bgVideo) {
+        bgVideoWrap.hidden = false;
+        bgVideoWrap.offsetHeight; // trigger transition
+        bgVideoWrap.classList.add("show");
+        bgVideo.play().catch(() => {});
+      }
+
+      // Confetti once
       if (!hasBurst) {
         hasBurst = true;
         confettiBurst(40);
@@ -56,12 +52,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // ✅ While countdown is running → KEEP playing
+    // ✅ STILL LOCKED
     lockScreen.hidden = false;
     birthdayScreen.hidden = true;
 
+    // ticking while locked (autoplay may require a click first; won’t crash)
     if (tickAudio && tickAudio.paused) {
-      tickAudio.play().catch(() => {}); // prevents crash if autoplay blocked
+      tickAudio.play().catch(() => {});
     }
 
     const totalSeconds = Math.floor(diff / 1000);
@@ -73,69 +70,49 @@ document.addEventListener("DOMContentLoaded", () => {
     countdownEl.textContent =
       `${pad(days)}d : ${pad(hours)}h : ${pad(minutes)}m : ${pad(seconds)}s`;
   }
+
   updateCountdown();
   setInterval(updateCountdown, 1000);
 
-  // Buttons (safe: only add listeners if they exist)
+  // Buttons
   const confettiBtn = document.getElementById("confettiBtn");
   const surpriseBtn = document.getElementById("surpriseBtn");
   const surpriseText = document.getElementById("surpriseText");
 
-  if (confettiBtn) {
-    confettiBtn.addEventListener("click", () => {
-      const burst = document.createElement("div");
-      burst.style.position = "fixed";
-      burst.style.left = Math.random() * 100 + "vw";
-      burst.style.top = "-20px";
-      burst.style.fontSize = "28px";
-      burst.style.zIndex = "9999";
-      burst.textContent = "🎊✨🎉💖🎂";
-      document.body.appendChild(burst);
-
-      let y = -20;
-      const fall = setInterval(() => {
-        y += 8;
-        burst.style.top = y + "px";
-        if (y > window.innerHeight + 50) {
-          clearInterval(fall);
-          burst.remove();
-        }
-      }, 16);
-    });
-  }
-
+  if (confettiBtn) confettiBtn.addEventListener("click", () => confettiBurst(25));
   if (surpriseBtn && surpriseText) {
     surpriseBtn.addEventListener("click", () => {
       surpriseText.hidden = !surpriseText.hidden;
     });
   }
 
+  // Lightbox
   const images = document.querySelectorAll(".gallery img");
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightboxImg");
   const closeLightbox = document.getElementById("closeLightbox");
 
-  // Open image
-  images.forEach(img => {
-    img.addEventListener("click", () => {
-      lightbox.hidden = false;
-      lightboxImg.src = img.src;
+  if (lightbox && lightboxImg && closeLightbox) {
+    images.forEach(img => {
+      img.addEventListener("click", () => {
+        lightboxImg.src = img.src;
+        lightbox.hidden = false;
+      });
     });
-  });
 
-  // Close when clicking X
-  closeLightbox.addEventListener("click", () => {
-    lightbox.hidden = true;
-  });
-
-  // Close when clicking background
-  lightbox.addEventListener("click", (e) => {
-    if (e.target === lightbox) {
+    closeLightbox.addEventListener("click", () => {
       lightbox.hidden = true;
-    }
-  });
-});
+      lightboxImg.src = "";
+    });
 
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox) {
+        lightbox.hidden = true;
+        lightboxImg.src = "";
+      }
+    });
+  }
+});
 
 function confettiBurst(times = 25) {
   for (let i = 0; i < times; i++) {
