@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const unlockTimeUTC = Date.UTC(2026, 1, 25, 6, 0, 0);
+  const unlockTimeUTC = Date.UTC(2026, 1, 26, 6, 0, 0);
   let hasBurst = false;
 
   const lockScreen = document.getElementById("lockScreen");
@@ -109,6 +109,31 @@ document.addEventListener("DOMContentLoaded", () => {
       surpriseText.hidden = !surpriseText.hidden;
     });
   }
+
+  const images = document.querySelectorAll(".gallery img");
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightboxImg");
+  const closeLightbox = document.getElementById("closeLightbox");
+
+  // Open image
+  images.forEach(img => {
+    img.addEventListener("click", () => {
+      lightbox.hidden = false;
+      lightboxImg.src = img.src;
+    });
+  });
+
+  // Close when clicking X
+  closeLightbox.addEventListener("click", () => {
+    lightbox.hidden = true;
+  });
+
+  // Close when clicking background
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox) {
+      lightbox.hidden = true;
+    }
+  });
 });
 
 
