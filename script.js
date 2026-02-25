@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   // ✅ Feb 26, 2026 12:00 AM Milwaukee (CST=UTC-6) => 06:00 UTC
-  const unlockTimeUTC = Date.UTC(2026, 1, 25, 6, 0, 0);
+  const unlockTimeUTC = Date.UTC(2026, 1, 26, 6, 0, 0);
   let hasBurst = false;
 
   const lockScreen = document.getElementById("lockScreen");
@@ -8,8 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const countdownEl = document.getElementById("countdown");
   const unlockDateText = document.getElementById("unlockDateText");
   const tickAudio = document.getElementById("tickAudio");
-  const bgVideoWrap = document.getElementById("bgVideoWrap");
-  const bgVideo = document.getElementById("bgVideo");
+  const birthdayAudio = document.getElementById("birthdayAudio");
 
   if (!lockScreen || !birthdayScreen || !countdownEl || !unlockDateText) return;
 
@@ -33,13 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
         tickAudio.currentTime = 0;
       }
 
-      // Show + fade in background video
-      if (bgVideoWrap && bgVideo) {
-        bgVideoWrap.hidden = false;
-        bgVideoWrap.offsetHeight; // trigger transition
-        bgVideoWrap.classList.add("show");
-        bgVideo.play().catch(() => {});
-      }
 
       // Confetti once
       if (!hasBurst) {
@@ -59,6 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // ticking while locked (autoplay may require a click first; won’t crash)
     if (tickAudio && tickAudio.paused) {
       tickAudio.play().catch(() => {});
+    }
+
+    if (birthdayAudio && birthdayAudio.paused) {
+      birthdayAudio.play().catch(() => {});
     }
 
     const totalSeconds = Math.floor(diff / 1000);
