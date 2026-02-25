@@ -1,11 +1,28 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const unlockTimeUTC = Date.UTC(2026, 1, 26, 6, 0, 0);
+  const unlockTimeUTC = Date.UTC(2026, 1, 25, 6, 0, 0);
   let hasBurst = false;
 
   const lockScreen = document.getElementById("lockScreen");
   const birthdayScreen = document.getElementById("birthdayScreen");
   const countdownEl = document.getElementById("countdown");
   const unlockDateText = document.getElementById("unlockDateText");
+  const tickAudio = document.getElementById("tickAudio");
+  const soundBtn = document.getElementById("soundBtn");
+
+
+  if (soundBtn && tickAudio) {
+    soundBtn.addEventListener("click", async () => {
+      try {
+        await tickAudio.play();   // start playing
+        tickAudio.pause();        // pause immediately (unlocks autoplay)
+        tickAudio.currentTime = 0;
+        soundEnabled = true;
+        soundBtn.textContent = "🔇";
+      } catch (e) {
+        // If it fails, user can click again
+      }
+    });
+  }
 
   if (!lockScreen || !birthdayScreen || !countdownEl || !unlockDateText) return;
 
@@ -15,31 +32,37 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateCountdown() {
     const diff = unlockTimeUTC - Date.now();
 
+    unlockDateText.textContent =
+      "Unlocks at: " + new Date(unlockTimeUTC).toLocaleString();
+
+    // ✅ When unlocked → STOP ticking
     if (diff <= 0) {
       lockScreen.hidden = true;
       birthdayScreen.hidden = false;
+      countdownEl.textContent = "00d : 00h : 00m : 00s";
+
+      if (tickAudio) {
+        tickAudio.pause();
+        tickAudio.currentTime = 0;
+      }
 
       if (!hasBurst) {
         hasBurst = true;
-        confettiBurst(40);                 // instant burst
-        setTimeout(() => confettiBurst(40), 400);  // extra burst
-        setTimeout(() => confettiBurst(40), 800);  // extra burst
+        confettiBurst(40);
+        setTimeout(() => confettiBurst(40), 400);
+        setTimeout(() => confettiBurst(40), 800);
       }
 
       return;
     }
 
-    unlockDateText.textContent = "Unlocks at: " + new Date(unlockTimeUTC).toLocaleString();
-
-    if (diff <= 0) {
-      lockScreen.hidden = true;
-      birthdayScreen.hidden = false;
-      countdownEl.textContent = "00d : 00h : 00m : 00s";
-      return;
-    }
-
+    // ✅ While countdown is running → KEEP playing
     lockScreen.hidden = false;
     birthdayScreen.hidden = true;
+
+    if (tickAudio && tickAudio.paused) {
+      tickAudio.play().catch(() => {}); // prevents crash if autoplay blocked
+    }
 
     const totalSeconds = Math.floor(diff / 1000);
     const days = Math.floor(totalSeconds / (3600 * 24));
@@ -47,9 +70,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
-    countdownEl.textContent = `${pad(days)}d : ${pad(hours)}h : ${pad(minutes)}m : ${pad(seconds)}s`;
+    countdownEl.textContent =
+      `${pad(days)}d : ${pad(hours)}h : ${pad(minutes)}m : ${pad(seconds)}s`;
   }
-
   updateCountdown();
   setInterval(updateCountdown, 1000);
 

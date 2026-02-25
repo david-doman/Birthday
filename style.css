@@ -77,3 +77,21 @@ footer {
   opacity: 0.75;
   font-size: 0.95rem;
 }
+
+.gallery{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.gallery img{
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+}
+
+.videoWrap{
+  margin-top: 20px;
+}
