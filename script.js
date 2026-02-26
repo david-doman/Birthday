@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   // ✅ Feb 26, 2026 12:00 AM Milwaukee (CST=UTC-6) => 06:00 UTC
-  const unlockTimeUTC = Date.UTC(2026, 1, 26, 6, 0, 0);
+  const unlockTimeUTC = Date.UTC(2026, 1, 25, 6, 0, 0);
   let hasBurst = false;
 
   const lockScreen = document.getElementById("lockScreen");
